@@ -1,0 +1,27 @@
+.menu {
+  background-color: lightgray;
+  border: 1px darkgray solid;
+  border-radius: 5px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu .button {
+  background-color: transparent;
+  padding: 5px 20px;
+  border: none;
+  border-bottom: 1px black solid;
+  color: black;
+  cursor: pointer;
+}
+
+.menu .button:last-child {
+  border-bottom: none;
+}
+
+.menu .button:hover {
+  background-color: darkgray;
+}
