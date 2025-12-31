@@ -7,8 +7,52 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 10px;
+
   background-color: lightgray;
   border-radius: 6px;
   z-index: 9999999999999999999999;
+  min-width: 600px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.popup .header {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px black solid;
+}
+
+.popup .header button {
+  outline: none;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.popup .body {
+  height: 100%;
+  display: flex;
+  justify-content: start;
+}
+
+.popup .footer {
+  border-top: 1px black solid;
+}
+
+.popup .footer button {
+  border: 0;
+  outline: 0;
+  padding: 5px 10px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
 }
