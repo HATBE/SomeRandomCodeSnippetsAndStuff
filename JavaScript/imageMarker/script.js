@@ -2,6 +2,7 @@ const markable = document.getElementById("markable");
 const ctx = markable.getContext("2d");
 
 let image;
+let showFrames = true;
 
 let persons = [];
 
@@ -51,7 +52,9 @@ function createImage() {
 function reDraw() {
   ctx.clearRect(0, 0, markable.width, markable.height);
   drawImage();
-  drawPersonFrames();
+  if (showFrames) {
+    drawPersonFrames();
+  }
 }
 
 function drawPersonFrames() {
@@ -178,6 +181,11 @@ function getCanvasXY(e, canvas) {
   const y = (e.clientY - rect.top) * scaleY;
 
   return { x, y };
+}
+
+function toggleFrames() {
+  showFrames = !showFrames;
+  reDraw();
 }
 
 createImage();
