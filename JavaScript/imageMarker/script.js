@@ -1,94 +1,129 @@
 const markable = document.getElementById("markable");
 const ctx = markable.getContext("2d");
 
-const image = new Image();
-image.src = "persons.jpg";
+let image;
 
-let imageWidth = 0;
-let imageHeight = 0;
+let persons = [];
 
-let isDragging = false;
-let startX = 0;
-let startY = 0;
+const squareDragInfo = {
+  isDragging: false,
+  startX: -1,
+  startY: -1,
+};
 
-image.onload = () => {
-  const maxSize = 1000;
+function createPerson(startX, startY, offsetX, offsetY) {
+  //TODO: LS
+  const person = {
+    startX,
+    startY,
+    offsetX,
+    offsetY,
+    name: "TESTNAME",
+  };
 
-  imageWidth = image.width;
-  imageHeight = image.height;
+  persons.push(person);
+}
 
-  const scale = Math.min(1, maxSize / imageWidth, maxSize / imageHeight);
+function createImage() {
+  image = new Image();
+  image.src = "persons.jpg";
+}
 
-  const scaledWidth = Math.round(imageWidth * scale);
-  const scaledHeight = Math.round(imageHeight * scale);
+function reDraw() {
+  ctx.clearRect(0, 0, markable.width, markable.height);
+  drawImage();
+  drawPersonFrames();
+}
+
+function drawPersonFrames() {
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  persons.forEach((person) => {
+    ctx.strokeRect(
+      person.startX,
+      person.startY,
+      person.offsetX,
+      person.offsetY
+    );
+  });
+}
+
+function drawImage() {
+  ctx.drawImage(image, 0, 0, markable.width, markable.height);
+}
+function mouseDownEvent(e) {
+  squareDragInfo.isDragging = true;
+  squareDragInfo.startX = e.offsetX;
+  squareDragInfo.startY = e.offsetY;
+}
+
+function resetSquareDragInfo() {
+  squareDragInfo.isDragging = false;
+  squareDragInfo.startX = -1;
+  squareDragInfo.startY = -1;
+}
+
+function mouseMoveEvent(e) {
+  if (!squareDragInfo.isDragging) {
+    return;
+  }
+
+  reDraw();
+
+  const { x, y, w, h } = getXYWH(e.offsetX, e.offsetY);
+
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(x, y, w, h);
+  ctx.setLineDash([]);
+}
+
+function mouseUpEvent(e) {
+  squareDragInfo.isDragging = false;
+
+  const { x, y, w, h } = getXYWH(e.offsetX, e.offsetY);
+
+  createPerson(x, y, w, h);
+  reDraw();
+}
+
+function contextMenuEvent(e) {
+  e.preventDefault();
+  resetSquareDragInfo();
+  reDraw();
+}
+
+function addEventListeners() {
+  markable.addEventListener("mousedown", mouseDownEvent);
+  markable.addEventListener("mousemove", mouseMoveEvent);
+  markable.addEventListener("mouseup", mouseUpEvent);
+  markable.addEventListener("contextmenu", contextMenuEvent);
+}
+
+function getXYWH(offsetX, offsetY) {
+  const x = Math.min(squareDragInfo.startX, offsetX),
+    y = Math.min(squareDragInfo.startY, offsetY),
+    w = Math.abs(offsetX - squareDragInfo.startX),
+    h = Math.abs(offsetY - squareDragInfo.startY);
+
+  return { x, y, w, h };
+}
+
+function createCanvasWithImage() {
+  const scale = Math.min(1, 1000 / image.width, 1000 / image.height);
+
+  const scaledWidth = Math.round(image.width * scale);
+  const scaledHeight = Math.round(image.height * scale);
 
   markable.width = scaledWidth;
   markable.height = scaledHeight;
 
-  ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+  reDraw();
+}
 
-  markable.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    startX = e.offsetX;
-    startY = e.offsetY;
-  });
-
-  markable.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-
-    const currentX = e.offsetX;
-    const currentY = e.offsetY;
-
-    ctx.clearRect(0, 0, markable.width, markable.height);
-    ctx.drawImage(image, 0, 0, markable.width, markable.height);
-
-    const x = Math.min(startX, currentX);
-    const y = Math.min(startY, currentY);
-    const w = Math.abs(currentX - startX);
-    const h = Math.abs(currentY - startY);
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.strokeRect(x, y, w, h);
-    ctx.setLineDash([]);
-  });
-
-  markable.addEventListener("mouseup", (e) => {
-    isDragging = false;
-
-    const endX = e.offsetX;
-    const endY = e.offsetY;
-
-    ctx.clearRect(0, 0, markable.width, markable.height);
-    ctx.drawImage(image, 0, 0, markable.width, markable.height);
-
-    const x = Math.min(startX, endX);
-    const y = Math.min(startY, endY);
-    const w = Math.abs(endX - startX);
-    const h = Math.abs(endY - startY);
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 5;
-    ctx.strokeRect(x, y, w, h);
-  });
+createImage();
+image.onload = () => {
+  createCanvasWithImage();
+  addEventListeners();
 };
-
-function createPersonFrame(x1, y1, x2, y2) {
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 5;
-
-  const left = Math.min(x1, x2);
-  const top = Math.min(y1, y2);
-  const w = Math.abs(x2 - x1);
-  const h = Math.abs(y2 - y1);
-
-  ctx.strokeRect(left, top, w, h);
-}
-
-function sendPercentage(x, y, width, height) {
-  const clickXPercent = Math.floor((x / width) * 100);
-  const clickYPercent = Math.floor((y / height) * 100);
-
-  console.log(clickXPercent, clickYPercent);
-}
