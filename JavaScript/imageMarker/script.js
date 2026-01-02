@@ -1,19 +1,35 @@
 const markable = document.getElementById("markable");
+const toggleBtn = document.getElementById("toggleBtn");
+const personslistEl = document.getElementById("persons-list");
 const ctx = markable.getContext("2d");
 
 let image;
 let showFrames = true;
 
-let persons = [];
+const databaseUsers = [
+  {
+    id: 1,
+    name: "Alexandra",
+    username: "alex123",
+  },
+  {
+    id: 2,
+    name: "Peter",
+    username: "Peter188",
+  },
+  {
+    id: 3,
+    name: "Claudia",
+    username: "CTester1",
+  },
+  {
+    id: 3,
+    name: "Hanspeter",
+    username: "Hanspeter12",
+  },
+];
 
-// TODO: DEBUG:
-persons.push({
-  startX: 185,
-  startY: 150,
-  offsetX: 100,
-  offsetY: 110,
-  name: "Hans",
-});
+const markedPersons = [];
 
 const squareDragInfo = {
   isDragging: false,
@@ -21,27 +37,42 @@ const squareDragInfo = {
   startY: -1,
 };
 
-function createPerson(startX, startY, offsetX, offsetY) {
-  //TODO: LS // todo, check if bounds with other person: check what to do then...
-
+function promptPerson() {
   const name = prompt("Enter a Name");
 
-  if (!name || name == "") {
+  if (name === null) {
+    return;
+  } else if (name === "") {
     alert("No name entered");
     return;
   }
 
-  const person = {
+  if (
+    !databaseUsers.some((u) => u.username.toLowerCase() === name.toLowerCase())
+  ) {
+    alert("No Matching User");
+    return;
+  }
+
+  return databaseUsers.find(
+    (u) => u.username.toLowerCase() === name.toLowerCase()
+  );
+}
+
+function createPerson(startX, startY, offsetX, offsetY) {
+  const person = promptPerson();
+  if (!person) return;
+
+  const markedPerson = {
     startX,
     startY,
     offsetX,
     offsetY,
-    name,
+    person,
+    highlighted: false,
   };
 
-  persons.push(person);
-
-  console.log(person);
+  markedPersons.push(markedPerson);
 }
 
 function createImage() {
@@ -49,48 +80,101 @@ function createImage() {
   image.src = "persons.jpg";
 }
 
-function reDraw() {
+function redrawCanvas() {
   ctx.clearRect(0, 0, markable.width, markable.height);
   drawImage();
-  if (showFrames) {
-    drawPersonFrames();
+  if (showFrames) drawPersonFrames();
+}
+
+function reDraw() {
+  redrawCanvas();
+  drawPersonsInList();
+}
+
+function drawPersonLabel(name, highlighted, startX, startY) {
+  ctx.font = "15px arial";
+  if (highlighted) {
+    ctx.fillStyle = "gold";
+  } else {
+    ctx.fillStyle = "black";
   }
+  const namelength = Math.round(ctx.measureText(name).width);
+
+  ctx.fillRect(startX - 1, startY, namelength + 10, 20);
+
+  if (highlighted) {
+    ctx.fillStyle = "black";
+  } else {
+    ctx.fillStyle = "white";
+  }
+  ctx.fillText(name, startX + 5, startY + 15);
+}
+
+function drawPersonFrame(
+  startX,
+  startY,
+  offsetX,
+  offsetY,
+  highlighted = false
+) {
+  ctx.lineWidth = 2;
+  if (highlighted) {
+    ctx.strokeStyle = "gold";
+  } else {
+    ctx.strokeStyle = "black";
+  }
+
+  ctx.strokeRect(startX, startY, offsetX, offsetY);
 }
 
 function drawPersonFrames() {
-  ctx.lineWidth = 2;
-  persons.forEach((person) => {
-    ctx.strokeStyle = "black";
-
-    ctx.strokeRect(
-      person.startX,
-      person.startY,
-      person.offsetX,
-      person.offsetY
+  markedPersons.forEach((markedPerson) => {
+    drawPersonFrame(
+      markedPerson.startX,
+      markedPerson.startY,
+      markedPerson.offsetX,
+      markedPerson.offsetY,
+      markedPerson.highlighted
     );
-
-    ctx.font = "15px arial";
-    ctx.fillStyle = "white";
-
-    const namelength = Math.round(ctx.measureText(person.name).width);
-
-    ctx.fillRect(
-      person.startX,
-      person.startY + person.offsetY,
-      namelength + 10,
-      20
-    );
-    ctx.fillStyle = "black";
-    ctx.fillText(
-      person.name,
-      person.startX + 5,
-      person.startY + person.offsetY + 15
+    drawPersonLabel(
+      markedPerson.person.name,
+      markedPerson.highlighted,
+      markedPerson.startX,
+      markedPerson.startY + markedPerson.offsetY
     );
   });
 }
 
 function drawImage() {
   ctx.drawImage(image, 0, 0, markable.width, markable.height);
+}
+
+function drawPersonsInList() {
+  personslistEl.innerHTML = "";
+
+  markedPersons.forEach((markedPerson, index) => {
+    const personItemEl = document.createElement("li");
+    personItemEl.textContent = markedPerson.person.name;
+
+    personItemEl.addEventListener("mouseenter", () => {
+      markedPerson.highlighted = true;
+      redrawCanvas();
+    });
+
+    personItemEl.addEventListener("mouseleave", () => {
+      markedPerson.highlighted = false;
+      redrawCanvas();
+    });
+
+    personItemEl.addEventListener("click", () => {
+      if (confirm(`Do you realy want to delete ${markedPerson.person.name}`)) {
+        markedPersons.splice(index, 1);
+        reDraw();
+      }
+    });
+
+    personslistEl.appendChild(personItemEl);
+  });
 }
 
 function resetSquareDragInfo() {
@@ -129,7 +213,6 @@ function mouseUpEvent(e) {
   const { x: rx, y: ry, w, h } = getXYWH(x, y);
 
   if (w < 25 || h < 25) {
-    alert("Square too small");
     reDraw();
     return;
   }
@@ -149,6 +232,7 @@ function addEventListeners() {
   markable.addEventListener("mousemove", mouseMoveEvent);
   markable.addEventListener("mouseup", mouseUpEvent);
   markable.addEventListener("contextmenu", contextMenuEvent);
+  toggleBtn.addEventListener("click", toggleShowFrames);
 }
 
 function getXYWH(offsetX, offsetY) {
@@ -183,8 +267,9 @@ function getCanvasXY(e, canvas) {
   return { x, y };
 }
 
-function toggleFrames() {
+function toggleShowFrames() {
   showFrames = !showFrames;
+  toggleBtn.textContent = showFrames ? "Disable Frames" : "Enable Frames";
   reDraw();
 }
 

@@ -7,9 +7,17 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="imageContainer">
-      <div><button onclick="toggleFrames()">Toggle Frames</button></div>
-      <canvas id="markable"></canvas>
+    <div class="container">
+      <nav class="navbar">
+        <button id="toggleBtn">Disable Frames</button>
+      </nav>
+      <div class="split">
+        <canvas id="markable"></canvas>
+        <div>
+          <h5>Marked Persons</h5>
+          <ul id="persons-list"></ul>
+        </div>
+      </div>
     </div>
     <script src="script.js"></script>
   </body>
