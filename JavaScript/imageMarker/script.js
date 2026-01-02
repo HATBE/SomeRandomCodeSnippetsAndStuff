@@ -1,11 +1,3 @@
-const markable = document.getElementById("markable");
-const toggleBtn = document.getElementById("toggleBtn");
-const personslistEl = document.getElementById("persons-list");
-const ctx = markable.getContext("2d");
-
-let image;
-let showFrames = true;
-
 const databaseUsers = [
   {
     id: 1,
@@ -39,6 +31,15 @@ const databaseUsers = [
   },
 ];
 
+const markable = document.getElementById("markable");
+const toggleBtn = document.getElementById("toggleBtn");
+const personslistEl = document.getElementById("persons-list");
+
+const ctx = markable.getContext("2d");
+
+let image;
+let showFrames = true;
+
 const markedPersons = [];
 
 const squareDragInfo = {
@@ -57,16 +58,16 @@ function promptPerson() {
     return;
   }
 
-  if (
-    !databaseUsers.some((u) => u.username.toLowerCase() === name.toLowerCase())
-  ) {
+  const user = databaseUsers.find(
+    (u) => u.username.toLowerCase() === name.toLowerCase()
+  );
+
+  if (!user) {
     alert("No Matching User");
     return;
   }
 
-  return databaseUsers.find(
-    (u) => u.username.toLowerCase() === name.toLowerCase()
-  );
+  return user;
 }
 
 function createPerson(startX, startY, offsetX, offsetY) {
@@ -84,6 +85,7 @@ function createPerson(startX, startY, offsetX, offsetY) {
   };
 
   markedPersons.push(markedPerson);
+  updatePersonsInList();
 }
 
 function createImage() {
@@ -91,15 +93,20 @@ function createImage() {
   image.src = "persons.jpg";
 }
 
+function drawImage() {
+  ctx.drawImage(image, 0, 0, markable.width, markable.height);
+}
+
 function redrawCanvas() {
   ctx.clearRect(0, 0, markable.width, markable.height);
   drawImage();
-  if (showFrames) drawPersonFrames();
+  if (showFrames) {
+    drawPersonFrames();
+  }
 }
 
-function reDraw() {
+function redraw() {
   redrawCanvas();
-  drawPersonsInList();
 }
 
 function drawPersonLabel(name, highlighted, startX, startY) {
@@ -156,11 +163,7 @@ function drawPersonFrames() {
   });
 }
 
-function drawImage() {
-  ctx.drawImage(image, 0, 0, markable.width, markable.height);
-}
-
-function drawPersonsInList() {
+function updatePersonsInList() {
   personslistEl.innerHTML = "";
 
   markedPersons.forEach((markedPerson, index) => {
@@ -188,7 +191,8 @@ function drawPersonsInList() {
     personItemEl.addEventListener("click", () => {
       if (confirm(`Do you realy want to delete ${markedPerson.person.name}`)) {
         markedPersons.splice(index, 1);
-        reDraw();
+        redraw();
+        updatePersonsInList();
       }
     });
 
@@ -214,7 +218,7 @@ function mouseMoveEvent(e) {
   if (e.button === 2 || !squareDragInfo.isDragging) return;
 
   const { x, y } = getCanvasXY(e, markable);
-  reDraw();
+  redraw();
 
   const { x: rx, y: ry, w, h } = getXYWH(x, y);
   ctx.strokeStyle = "black";
@@ -232,18 +236,18 @@ function mouseUpEvent(e) {
   const { x: rx, y: ry, w, h } = getXYWH(x, y);
 
   if (w < 25 || h < 25) {
-    reDraw();
+    redraw();
     return;
   }
 
   createPerson(rx, ry, w, h);
-  reDraw();
+  redraw();
 }
 
 function contextMenuEvent(e) {
   e.preventDefault();
   resetSquareDragInfo();
-  reDraw();
+  redraw();
 }
 
 function addEventListeners() {
@@ -272,7 +276,7 @@ function createCanvasWithImage() {
   markable.width = scaledWidth;
   markable.height = scaledHeight;
 
-  reDraw();
+  redraw();
 }
 
 function getCanvasXY(e, canvas) {
@@ -289,7 +293,7 @@ function getCanvasXY(e, canvas) {
 function toggleShowFrames() {
   showFrames = !showFrames;
   toggleBtn.textContent = showFrames ? "Disable Frames" : "Enable Frames";
-  reDraw();
+  redraw();
 }
 
 function cropSourceImageToDataURL(xCanvas, yCanvas, wCanvas, hCanvas) {
