@@ -58,20 +58,29 @@ nav.navbar button:hover {
 #persons-list li {
   color: black;
   background-color: lightgray;
-  padding: 5px 10px;
   cursor: pointer;
+  margin: 10px 0;
+  display: flex;
+  justify-items: space-between;
+  align-items: center;
 }
 
 #persons-list li:hover {
   background-color: gold;
 }
 
-li {
-  margin: 10px 0;
+#persons-list li:last-child {
+  margin-bottom: 0;
 }
 
-li:last-child {
-  margin-bottom: 0;
+#persons-list li img {
+  margin-right: 10px;
+  max-height: 50px;
+  width: auto;
+}
+
+#persons-list li div {
+  font-size: 13px;
 }
 
 h5 {

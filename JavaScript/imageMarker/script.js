@@ -9,23 +9,33 @@ let showFrames = true;
 const databaseUsers = [
   {
     id: 1,
-    name: "Alexandra",
+    name: "Alexandra Hunziker",
     username: "alex123",
   },
   {
     id: 2,
-    name: "Peter",
+    name: "Peter Hansen",
     username: "Peter188",
   },
   {
     id: 3,
-    name: "Claudia",
+    name: "Claudia Nürn",
     username: "CTester1",
   },
   {
-    id: 3,
-    name: "Hanspeter",
-    username: "Hanspeter12",
+    id: 4,
+    name: "Erika Mustermann",
+    username: "erika",
+  },
+  {
+    id: 5,
+    name: "Lilly Muster",
+    username: "lilly",
+  },
+  {
+    id: 6,
+    name: "Martin Windo",
+    username: "margin",
   },
 ];
 
@@ -70,6 +80,7 @@ function createPerson(startX, startY, offsetX, offsetY) {
     offsetY,
     person,
     highlighted: false,
+    cutoutImage: cropSourceImageToDataURL(startX, startY, offsetX, offsetY),
   };
 
   markedPersons.push(markedPerson);
@@ -154,7 +165,15 @@ function drawPersonsInList() {
 
   markedPersons.forEach((markedPerson, index) => {
     const personItemEl = document.createElement("li");
-    personItemEl.textContent = markedPerson.person.name;
+
+    const nameEl = document.createElement("div");
+    nameEl.textContent = markedPerson.person.name;
+
+    const imageEl = document.createElement("img");
+    imageEl.src = markedPerson.cutoutImage;
+
+    personItemEl.appendChild(imageEl);
+    personItemEl.appendChild(nameEl);
 
     personItemEl.addEventListener("mouseenter", () => {
       markedPerson.highlighted = true;
@@ -271,6 +290,25 @@ function toggleShowFrames() {
   showFrames = !showFrames;
   toggleBtn.textContent = showFrames ? "Disable Frames" : "Enable Frames";
   reDraw();
+}
+
+function cropSourceImageToDataURL(xCanvas, yCanvas, wCanvas, hCanvas) {
+  const scaleX = image.naturalWidth / markable.width;
+  const scaleY = image.naturalHeight / markable.height;
+
+  const sx = Math.round(xCanvas * scaleX);
+  const sy = Math.round(yCanvas * scaleY);
+  const sw = Math.round(wCanvas * scaleX);
+  const sh = Math.round(hCanvas * scaleY);
+
+  const out = document.createElement("canvas");
+  out.width = sw;
+  out.height = sh;
+
+  const octx = out.getContext("2d");
+  octx.drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  return out.toDataURL("image/jpeg");
 }
 
 createImage();
